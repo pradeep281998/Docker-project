@@ -1,13 +1,57 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Page Title</title>
-</head>
-<body>
+pipeline {
+    agent any
+    environment {
+        registry = 'docker.io/pradeep281998/docfile'
+        registryCredential = 'docker-hub-id'
+        
+        dockerImage = ''
+    }
+    
+     stages {
+        stage('git') {
+            steps {
+                echo 'Hello World'
+               git branch: 'main', url:"https://github.com/pradeep281998/Dockerfile.git"
+            }
+        }
+        
+        stage('Dockerfile true'){
+            steps{
+                
+        echo 'docker file is there'
+                
+            }
+            
+        }
+       
 
-<h1>hi pradeep</h1>
-<p>love the life you live.</p>
 
-</body>
-</html>
+      stage('Building our image') {
+            steps {
+                script {
+                    sh 'docker info'
+                    dockerImage = docker.build registry + ":v$BUILD_NUMBER"
+                }
+            }
+        }
+        stage('Push Image To DockerHUB') {
+            steps {
+                script {
+                    docker.withRegistry( '', registryCredential ) {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+      
 
+}
+post{
+    
+    always{
+        emailext body: 'A test email', recipientProviders: [[$class:'DevelopersRecipientProvider']], subject: 'Test', to:'pradeepvarma5121@gmail.com'
+    }
+    
+}
+   
+}
